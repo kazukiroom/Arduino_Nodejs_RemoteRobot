@@ -7,17 +7,15 @@ var app = require('http').createServer(handler),
 io.set('log level', 1);
 
 // Serial Port
-var portName = 'COM2'; // Mac環境(WINDOWSの場合はCOMXで設定)
+var portName = 'COM2'; // WINDOWS環境(Macの場合は異なります)
 var sp = new serialport(portName, {
     //baudRate: 57600,
     baudRate: 9600,
-
     dataBits: 8,
     parity: 'none',
     stopBits: 1,
     flowControl: false,
 });
-
 
 app.listen(3000);
 function handler(req, res){
@@ -65,41 +63,16 @@ io.sockets.on('connection', function(socket){
 	socket.on('emit_from_client', function(data){
 		//check the data
 	//	console.log(data);
-
 		var receive = JSON.stringify(data);
 		console.log("data: [" + receive + "]");
 
 		//write to serialport
 		sp.write(receive , function(err, results) {
-  	//	sp.write(receive + "\n", function(err, results) {
     //        console.log('bytes written: ', results);
         });
 
 	});
-	
-	//slider changed
-	socket.on('emit_from_client_pw', function(data){
-		var receive = JSON.stringify(data);
-		console.log("slider: [" + receive + "]");
-		socket.broadcast.emit('emit_from_server_pw', receive);
-		
-	});
 });
-
-//data from arduino
-sp.on('data', function(data) {
-	console.log('serialpor data received: ' + data);
-	try{
-		var length = JSON.parse(data).length;
-		//console.log("length = " + length);
-		io.sockets.emit('emit_from_server', length);
-	}catch(e){
-		//eat it;
-	}
-	
-});
-
-
 
 sp.on('close', function(err) {
     console.log('port closed');
